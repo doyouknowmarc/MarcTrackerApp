@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="MarcTracker Maskable Icon">
+  <rect width="512" height="512" fill="#0f766e" />
+  <g transform="translate(36 36)">
+    <rect width="440" height="440" rx="96" fill="#115e59" />
+    <path d="M88 286c50-81 90-120 118-120 32 0 50 24 60 62 17-45 44-82 82-102l2 66c-28 19-45 48-58 94h-58c-10-29-18-42-30-42-15 0-38 23-71 77h-45z" fill="#f8fafc"/>
+    <circle cx="336" cy="128" r="33" fill="#f59e0b"/>
+  </g>
+</svg>
