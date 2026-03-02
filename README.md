@@ -46,7 +46,7 @@ Das Projekt ist bereits für GitHub Pages vorbereitet.
 - Project Pages: `https://<user>.github.io/<repo>/`
 - User/Org Pages (`<user>.github.io` repo): `https://<user>.github.io/`
 
-Die `base`-Pfadlogik wird im Build automatisch über GitHub-Umgebungsvariablen gesetzt.
+Dieses Projekt ist auf `https://doyouknowmarc.github.io/marctrackerapp/` ausgelegt.
 
 ## Storage / Backups
 - Daten liegen lokal auf dem Gerät im Browser.
@@ -56,4 +56,3 @@ Die `base`-Pfadlogik wird im Build automatisch über GitHub-Umgebungsvariablen g
   - geschätztes Speicherlimit
   - Datensatzanzahl
 - Empfehlung: regelmäßig CSV oder JSON exportieren (Backup).
-

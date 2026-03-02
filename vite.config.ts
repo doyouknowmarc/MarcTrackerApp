@@ -3,17 +3,13 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1]
-const repoOwner = process.env.GITHUB_REPOSITORY_OWNER
-const isUserOrOrgPagesRepo = Boolean(
-  repoOwner && repoName && repoName.toLowerCase() === `${repoOwner.toLowerCase()}.github.io`,
-)
-const githubPagesBase = repoName && !isUserOrOrgPagesRepo ? `/${repoName}/` : '/'
-const isGithubActionsBuild = process.env.GITHUB_ACTIONS === 'true'
-const basePath = isGithubActionsBuild ? githubPagesBase : '/'
+const pagesBasePath = '/marctrackerapp/'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => {
+  const basePath = command === 'build' ? pagesBasePath : '/'
+
+  return {
   base: basePath,
   plugins: [
     react(),
@@ -52,4 +48,5 @@ export default defineConfig({
     setupFiles: './src/test/setup.ts',
     css: true,
   },
+  }
 })

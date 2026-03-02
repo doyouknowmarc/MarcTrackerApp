@@ -6,7 +6,7 @@ function validInput(overrides: Partial<MeasurementInput> = {}): MeasurementInput
   return {
     date: '2026-03-01',
     weightKg: 80,
-    bmi: 24.1,
+    biologicalAge: 35,
     visceralFat: 8,
     musclePercent: 41,
     bodyFatPercent: 20,
@@ -27,10 +27,10 @@ describe('validateMeasurementInput', () => {
     expect(errors.waterPercent).toBeDefined()
   })
 
-  it('flags invalid weight and bmi', () => {
-    const errors = validateMeasurementInput(validInput({ weightKg: 0, bmi: 0 }))
+  it('flags invalid weight and biological age', () => {
+    const errors = validateMeasurementInput(validInput({ weightKg: 0, biologicalAge: 0 }))
     expect(errors.weightKg).toBeDefined()
-    expect(errors.bmi).toBeDefined()
+    expect(errors.biologicalAge).toBeDefined()
   })
 
   it('flags non-finite values', () => {

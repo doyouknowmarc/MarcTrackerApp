@@ -20,7 +20,7 @@ describe('DexieMeasurementRepository', () => {
     await repository.upsertByDate({
       date: '2026-03-01',
       weightKg: 80,
-      bmi: 24,
+      biologicalAge: 35,
       visceralFat: 8,
       musclePercent: 40,
       bodyFatPercent: 21,
@@ -33,7 +33,7 @@ describe('DexieMeasurementRepository', () => {
     await repository.upsertByDate({
       date: '2026-03-01',
       weightKg: 79,
-      bmi: 23.8,
+      biologicalAge: 34,
       visceralFat: 7.8,
       musclePercent: 40.5,
       bodyFatPercent: 20.5,
@@ -51,7 +51,7 @@ describe('DexieMeasurementRepository', () => {
     await repository.upsertByDate({
       date: '2026-03-01',
       weightKg: 80,
-      bmi: 24,
+      biologicalAge: 35,
       visceralFat: 8,
       musclePercent: 40,
       bodyFatPercent: 21,
@@ -62,7 +62,7 @@ describe('DexieMeasurementRepository', () => {
     const json = await repository.exportJson()
 
     expect(csv.split('\n')[0]).toBe(
-      'date,weightKg,bmi,visceralFat,musclePercent,bodyFatPercent,waterPercent,createdAt,updatedAt',
+      'date,weightKg,biologicalAge,visceralFat,musclePercent,bodyFatPercent,waterPercent,createdAt,updatedAt',
     )
     expect(json).toContain('"date": "2026-03-01"')
   })
@@ -71,7 +71,7 @@ describe('DexieMeasurementRepository', () => {
     await repository.upsertByDate({
       date: '2026-03-01',
       weightKg: 80,
-      bmi: 24,
+      biologicalAge: 35,
       visceralFat: 8,
       musclePercent: 40,
       bodyFatPercent: 21,
@@ -88,7 +88,7 @@ describe('DexieMeasurementRepository', () => {
     await repository.upsertByDate({
       date: '2026-03-01',
       weightKg: 80,
-      bmi: 24,
+      biologicalAge: 35,
       visceralFat: 8,
       musclePercent: 40,
       bodyFatPercent: 21,
@@ -97,7 +97,7 @@ describe('DexieMeasurementRepository', () => {
     await repository.upsertByDate({
       date: '2026-03-02',
       weightKg: 79.5,
-      bmi: 23.9,
+      biologicalAge: 34,
       visceralFat: 7.8,
       musclePercent: 40.2,
       bodyFatPercent: 20.9,

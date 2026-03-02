@@ -4,14 +4,18 @@ import { hasValidationErrors, validateMeasurementInput } from './validation'
 const REQUIRED_COLUMNS: Array<keyof MeasurementInput> = [
   'date',
   'weightKg',
-  'bmi',
+  'biologicalAge',
   'visceralFat',
   'musclePercent',
   'bodyFatPercent',
   'waterPercent',
 ]
 
-function parseNumber(value: unknown, field: keyof MeasurementInput, rowNumber: number): number {
+type ImportRecord = Partial<Record<keyof MeasurementInput, unknown>> & {
+  bmi?: unknown
+}
+
+function parseNumber(value: unknown, field: string, rowNumber: number): number {
   if (typeof value === 'number') {
     if (!Number.isFinite(value)) {
       throw new Error(`Zeile ${rowNumber}: Feld "${field}" ist keine gültige Zahl.`)
@@ -114,13 +118,14 @@ function parseCsvRows(rawContent: string): string[][] {
   return rows
 }
 
-function parseEntryFromRecord(record: Partial<Record<keyof MeasurementInput, unknown>>, rowNumber: number) {
+function parseEntryFromRecord(record: ImportRecord, rowNumber: number) {
   const date = typeof record.date === 'string' ? record.date.trim() : ''
+  const biologicalAgeValue = record.biologicalAge ?? record.bmi
 
   const entry: MeasurementInput = {
     date,
     weightKg: parseNumber(record.weightKg, 'weightKg', rowNumber),
-    bmi: parseNumber(record.bmi, 'bmi', rowNumber),
+    biologicalAge: parseNumber(biologicalAgeValue, 'biologicalAge', rowNumber),
     visceralFat: parseNumber(record.visceralFat, 'visceralFat', rowNumber),
     musclePercent: parseNumber(record.musclePercent, 'musclePercent', rowNumber),
     bodyFatPercent: parseNumber(record.bodyFatPercent, 'bodyFatPercent', rowNumber),
@@ -141,10 +146,15 @@ export function parseMeasurementsCsv(rawContent: string): MeasurementInput[] {
 
   const headers = rows[0].map((header) => header.trim())
 
-  for (const requiredColumn of REQUIRED_COLUMNS) {
+  const requiredWithoutAge = REQUIRED_COLUMNS.filter((column) => column !== 'biologicalAge')
+  for (const requiredColumn of requiredWithoutAge) {
     if (!headers.includes(requiredColumn)) {
       throw new Error(`CSV-Spalte fehlt: ${requiredColumn}`)
     }
+  }
+
+  if (!headers.includes('biologicalAge') && !headers.includes('bmi')) {
+    throw new Error('CSV-Spalte fehlt: biologicalAge')
   }
 
   const columnLookup = new Map<string, number>()
@@ -158,9 +168,13 @@ export function parseMeasurementsCsv(rawContent: string): MeasurementInput[] {
     const rowNumber = rowIndex + 1
     const row = rows[rowIndex]
 
-    const rowRecord: Partial<Record<keyof MeasurementInput, unknown>> = {}
+    const rowRecord: ImportRecord = {}
     for (const column of REQUIRED_COLUMNS) {
-      rowRecord[column] = row[columnLookup.get(column) ?? -1] ?? ''
+      if (column === 'biologicalAge' && !headers.includes('biologicalAge') && headers.includes('bmi')) {
+        rowRecord.bmi = row[columnLookup.get('bmi') ?? -1] ?? ''
+      } else {
+        rowRecord[column] = row[columnLookup.get(column) ?? -1] ?? ''
+      }
     }
 
     importedEntries.push(parseEntryFromRecord(rowRecord, rowNumber))
@@ -189,7 +203,7 @@ export function parseMeasurementsJson(rawContent: string): MeasurementInput[] {
       throw new Error(`Zeile ${index + 1}: Ungültiges Objekt.`)
     }
 
-    const rowObject = row as Partial<Record<keyof MeasurementInput, unknown>>
+    const rowObject = row as ImportRecord
     return parseEntryFromRecord(rowObject, index + 1)
   })
 

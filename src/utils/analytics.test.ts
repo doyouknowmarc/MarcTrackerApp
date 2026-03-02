@@ -6,7 +6,7 @@ const entries: Measurement[] = [
   {
     date: '2026-01-01',
     weightKg: 85,
-    bmi: 25,
+    biologicalAge: 36,
     visceralFat: 9,
     musclePercent: 39,
     bodyFatPercent: 22,
@@ -17,7 +17,7 @@ const entries: Measurement[] = [
   {
     date: '2026-01-20',
     weightKg: 83,
-    bmi: 24.5,
+    biologicalAge: 35,
     visceralFat: 8,
     musclePercent: 40,
     bodyFatPercent: 21,
@@ -28,7 +28,7 @@ const entries: Measurement[] = [
   {
     date: '2026-02-05',
     weightKg: 82,
-    bmi: 24.2,
+    biologicalAge: 35,
     visceralFat: 8,
     musclePercent: 41,
     bodyFatPercent: 20,
@@ -48,9 +48,9 @@ describe('calculateMetricSnapshot', () => {
   })
 
   it('returns null deltas when no reference exists', () => {
-    const snapshot = calculateMetricSnapshot(entries.slice(0, 1), 'bmi')
+    const snapshot = calculateMetricSnapshot(entries.slice(0, 1), 'biologicalAge')
 
-    expect(snapshot.current).toBe(25)
+    expect(snapshot.current).toBe(36)
     expect(snapshot.delta7).toBeNull()
     expect(snapshot.delta30).toBeNull()
   })

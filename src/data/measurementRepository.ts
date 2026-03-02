@@ -4,7 +4,7 @@ import { appDb, type MarcTrackerDB } from './db'
 const CSV_COLUMNS: Array<keyof Measurement> = [
   'date',
   'weightKg',
-  'bmi',
+  'biologicalAge',
   'visceralFat',
   'musclePercent',
   'bodyFatPercent',

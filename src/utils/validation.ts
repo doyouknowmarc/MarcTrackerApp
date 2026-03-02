@@ -15,8 +15,8 @@ export function validateMeasurementInput(input: MeasurementInput): ValidationErr
   if (!isFiniteNumber(input.weightKg) || !(input.weightKg > 0)) {
     errors.weightKg = 'Gewicht muss größer als 0 sein.'
   }
-  if (!isFiniteNumber(input.bmi) || !(input.bmi > 0)) {
-    errors.bmi = 'BMI muss größer als 0 sein.'
+  if (!isFiniteNumber(input.biologicalAge) || !(input.biologicalAge > 0) || input.biologicalAge > 130) {
+    errors.biologicalAge = 'Biologisches Alter muss zwischen 1 und 130 liegen.'
   }
   if (!isFiniteNumber(input.visceralFat) || !(input.visceralFat >= 0)) {
     errors.visceralFat = 'Viszeralfett muss mindestens 0 sein.'

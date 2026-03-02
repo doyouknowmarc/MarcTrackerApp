@@ -65,24 +65,24 @@ export function HistoryPage() {
 
             <dl className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
               <div className="rounded-xl bg-slate-50 px-3 py-2">
-                <dt className="text-slate-500">BMI</dt>
-                <dd className="font-semibold">{entry.bmi.toFixed(1)}</dd>
+                <dt className="text-slate-500">Körperfett</dt>
+                <dd className="font-semibold">{entry.bodyFatPercent.toFixed(1)} %</dd>
+              </div>
+              <div className="rounded-xl bg-slate-50 px-3 py-2">
+                <dt className="text-slate-500">Körperwasser</dt>
+                <dd className="font-semibold">{entry.waterPercent.toFixed(1)} %</dd>
+              </div>
+              <div className="rounded-xl bg-slate-50 px-3 py-2">
+                <dt className="text-slate-500">Muskelmasse</dt>
+                <dd className="font-semibold">{entry.musclePercent.toFixed(1)} %</dd>
               </div>
               <div className="rounded-xl bg-slate-50 px-3 py-2">
                 <dt className="text-slate-500">Viszeralfett</dt>
                 <dd className="font-semibold">{entry.visceralFat.toFixed(1)}</dd>
               </div>
               <div className="rounded-xl bg-slate-50 px-3 py-2">
-                <dt className="text-slate-500">Muskelanteil</dt>
-                <dd className="font-semibold">{entry.musclePercent.toFixed(1)} %</dd>
-              </div>
-              <div className="rounded-xl bg-slate-50 px-3 py-2">
-                <dt className="text-slate-500">Fettanteil</dt>
-                <dd className="font-semibold">{entry.bodyFatPercent.toFixed(1)} %</dd>
-              </div>
-              <div className="rounded-xl bg-slate-50 px-3 py-2">
-                <dt className="text-slate-500">Wasseranteil</dt>
-                <dd className="font-semibold">{entry.waterPercent.toFixed(1)} %</dd>
+                <dt className="text-slate-500">Biologisches Alter</dt>
+                <dd className="font-semibold">{entry.biologicalAge.toFixed(0)} J</dd>
               </div>
             </dl>
           </article>

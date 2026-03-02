@@ -9,11 +9,11 @@ import { hasValidationErrors, validateMeasurementInput, type ValidationErrors } 
 type EntryFormState = {
   date: string
   weightKg: string
-  bmi: string
-  visceralFat: string
-  musclePercent: string
   bodyFatPercent: string
   waterPercent: string
+  musclePercent: string
+  visceralFat: string
+  biologicalAge: string
 }
 
 type FieldConfig = {
@@ -26,35 +26,43 @@ type FieldConfig = {
 }
 
 const FIELD_CONFIGS: FieldConfig[] = [
-  { key: 'weightKg', label: 'Gewicht', unit: 'kg', step: 0.1, min: 0.1 },
-  { key: 'bmi', label: 'BMI', unit: 'BMI', step: 0.1, min: 0.1 },
-  { key: 'visceralFat', label: 'Viszeralfett', unit: 'Index', step: 0.1, min: 0 },
-  { key: 'musclePercent', label: 'Muskelanteil', unit: '%', step: 0.1, min: 0, max: 100 },
-  { key: 'bodyFatPercent', label: 'Fettanteil', unit: '%', step: 0.1, min: 0, max: 100 },
-  { key: 'waterPercent', label: 'Wasseranteil', unit: '%', step: 0.1, min: 0, max: 100 },
+  { key: 'weightKg', label: '1. Gewicht', unit: 'kg', step: 0.1, min: 0.1 },
+  { key: 'bodyFatPercent', label: '2. Körperfett', unit: '%', step: 0.1, min: 0, max: 100 },
+  { key: 'waterPercent', label: '3. Körperwasser', unit: '%', step: 0.1, min: 0, max: 100 },
+  { key: 'musclePercent', label: '4. Muskelmasse', unit: '%', step: 0.1, min: 0, max: 100 },
+  { key: 'visceralFat', label: '5. Viszeralfett', unit: 'Index', step: 0.1, min: 0 },
+  { key: 'biologicalAge', label: '6. Biologisches Alter', unit: 'J', step: 1, min: 1, max: 130 },
 ]
 
 function createDefaultFormState(date = toIsoDateLocal()): EntryFormState {
   return {
     date,
     weightKg: '',
-    bmi: '',
-    visceralFat: '',
-    musclePercent: '',
     bodyFatPercent: '',
     waterPercent: '',
+    musclePercent: '',
+    visceralFat: '',
+    biologicalAge: '',
   }
+}
+
+function toInputValue(value: number | undefined): string {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    return ''
+  }
+
+  return String(value)
 }
 
 function mapMeasurementToFormState(measurement: Measurement, date = toIsoDateLocal()): EntryFormState {
   return {
     date,
     weightKg: String(measurement.weightKg),
-    bmi: String(measurement.bmi),
-    visceralFat: String(measurement.visceralFat),
-    musclePercent: String(measurement.musclePercent),
     bodyFatPercent: String(measurement.bodyFatPercent),
     waterPercent: String(measurement.waterPercent),
+    musclePercent: String(measurement.musclePercent),
+    visceralFat: String(measurement.visceralFat),
+    biologicalAge: toInputValue(measurement.biologicalAge),
   }
 }
 
@@ -177,11 +185,11 @@ export function EntryPage() {
     const parsedInput: MeasurementInput = {
       date: formState.date,
       weightKg: toNumber(formState.weightKg),
-      bmi: toNumber(formState.bmi),
-      visceralFat: toNumber(formState.visceralFat),
-      musclePercent: toNumber(formState.musclePercent),
       bodyFatPercent: toNumber(formState.bodyFatPercent),
       waterPercent: toNumber(formState.waterPercent),
+      musclePercent: toNumber(formState.musclePercent),
+      visceralFat: toNumber(formState.visceralFat),
+      biologicalAge: toNumber(formState.biologicalAge),
     }
 
     const validationErrors = validateMeasurementInput(parsedInput)
@@ -212,7 +220,7 @@ export function EntryPage() {
       <header className="rounded-3xl border border-teal-900/10 bg-white/95 p-5 shadow-sm">
         <h2 className="text-xl font-bold tracking-tight">{editDate ? 'Eintrag bearbeiten' : 'Schnellerfassung'}</h2>
         <p className="mt-1 text-sm text-slate-600">
-          Mobile-freundlich mit Number-Pad und Schnellanpassung per Plus/Minus.
+          Reihenfolge ist jetzt wie auf deiner Waage: kg, Körperfett, Wasser, Muskelmasse, Viszeralfett, biologisches Alter.
         </p>
         {hint ? <p className="mt-3 rounded-xl bg-teal-50 px-3 py-2 text-sm text-teal-900">{hint}</p> : null}
       </header>
