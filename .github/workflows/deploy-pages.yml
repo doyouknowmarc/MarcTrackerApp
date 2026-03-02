@@ -1,4 +1,4 @@
-name: Deploy MarcTracker to GitHub Pages
+name: Deploy TrackerApp to GitHub Pages
 
 on:
   push:

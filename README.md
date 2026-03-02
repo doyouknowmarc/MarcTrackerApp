@@ -1,12 +1,12 @@
-# MarcTracker PWA
+# TrackerApp PWA
 
-MarcTracker ist eine mobile-first Progressive Web App zum Tracken von:
-- Gewicht
-- BMI
-- Viszeralfett
-- Muskelanteil
-- Fettanteil
-- Wasseranteil
+TrackerApp ist eine mobile-first Progressive Web App zum Tracken von:
+- Gewicht (kg)
+- Körperfett (%)
+- Körperwasser (%)
+- Muskelmasse (%)
+- Viszeralfett (Index)
+- Biologisches Alter
 
 Die Daten werden lokal im Browser (`IndexedDB`) gespeichert. Kein Login, kein Backend.
 
@@ -17,7 +17,7 @@ Die Daten werden lokal im Browser (`IndexedDB`) gespeichert. Kein Login, kein Ba
 - Dashboard mit Gewichtstrend und KPI-Änderungen (7/30 Tage)
 - Verlauf mit Bearbeiten/Löschen
 - CSV/JSON Export
-- CSV/JSON Import
+- CSV/JSON Import (inkl. Legacy-Import alter `bmi`-Dateien)
 - Offline-fähig als PWA
 
 ## Development
@@ -34,19 +34,19 @@ npm run build
 ```
 
 ## Deploy auf GitHub Pages
-Das Projekt ist bereits für GitHub Pages vorbereitet.
+Das Projekt ist für GitHub Pages vorbereitet.
 
-1. Repository zu GitHub pushen (Branch `main`).
+1. Repository auf GitHub pushen (Branch `main`).
 2. In GitHub: `Settings -> Pages -> Build and deployment -> Source = GitHub Actions`.
-3. Workflow liegt unter:
+3. Workflow:
    - `.github/workflows/deploy-pages.yml`
-4. Nach Push auf `main` wird automatisch deployed.
+4. Push auf `main` triggert Deployment automatisch.
 
-### URL-Format
+### URL
 - Project Pages: `https://<user>.github.io/<repo>/`
 - User/Org Pages (`<user>.github.io` repo): `https://<user>.github.io/`
 
-Dieses Projekt ist auf `https://doyouknowmarc.github.io/marctrackerapp/` ausgelegt.
+Die Build-Konfiguration setzt den Base-Pfad auf Basis des tatsächlichen Repo-Namens auf GitHub.
 
 ## Storage / Backups
 - Daten liegen lokal auf dem Gerät im Browser.

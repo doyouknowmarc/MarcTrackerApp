@@ -124,7 +124,7 @@ export function SettingsPage() {
     try {
       const content = format === 'csv' ? await exportCsv() : await exportJson()
       const dateSuffix = toIsoDateLocal()
-      const filename = `marctracker-${dateSuffix}.${format}`
+      const filename = `trackerapp-${dateSuffix}.${format}`
       const mimeType = format === 'csv' ? 'text/csv;charset=utf-8' : 'application/json;charset=utf-8'
 
       downloadTextFile(content, filename, mimeType)
@@ -269,7 +269,7 @@ export function SettingsPage() {
       <article className="rounded-3xl border border-teal-900/10 bg-white/95 p-4 shadow-sm">
         <h3 className="text-base font-bold">Import</h3>
         <p className="mt-1 text-sm text-slate-600">
-          Unterstützt CSV aus MarcTracker-Export und JSON-Array mit denselben Feldern.
+          Unterstützt CSV aus TrackerApp-Export und JSON-Array mit denselben Feldern.
         </p>
 
         <div className="mt-3 space-y-3">

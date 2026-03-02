@@ -9,7 +9,7 @@ export function AppShell() {
         <div className="rounded-3xl border border-teal-900/10 bg-white/90 p-4 shadow-sm backdrop-blur">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-teal-700">MarcTracker</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-teal-700">TrackerApp</p>
               <h1 className="text-2xl font-bold tracking-tight">Fitnessziele</h1>
             </div>
             <div className="rounded-xl bg-teal-50 px-3 py-2 text-right">
