@@ -4,16 +4,15 @@ import { hasValidationErrors, validateMeasurementInput } from './validation'
 const REQUIRED_COLUMNS: Array<keyof MeasurementInput> = [
   'date',
   'weightKg',
-  'biologicalAge',
-  'visceralFat',
-  'musclePercent',
   'bodyFatPercent',
   'waterPercent',
+  'musclePercent',
+  'bmi',
+  'visceralFat',
+  'biologicalAge',
 ]
 
-type ImportRecord = Partial<Record<keyof MeasurementInput, unknown>> & {
-  bmi?: unknown
-}
+type ImportRecord = Partial<Record<keyof MeasurementInput, unknown>>
 
 function parseNumber(value: unknown, field: string, rowNumber: number): number {
   if (typeof value === 'number') {
@@ -121,15 +120,17 @@ function parseCsvRows(rawContent: string): string[][] {
 function parseEntryFromRecord(record: ImportRecord, rowNumber: number) {
   const date = typeof record.date === 'string' ? record.date.trim() : ''
   const biologicalAgeValue = record.biologicalAge ?? record.bmi
+  const bmiValue = record.bmi ?? biologicalAgeValue
 
   const entry: MeasurementInput = {
     date,
     weightKg: parseNumber(record.weightKg, 'weightKg', rowNumber),
-    biologicalAge: parseNumber(biologicalAgeValue, 'biologicalAge', rowNumber),
-    visceralFat: parseNumber(record.visceralFat, 'visceralFat', rowNumber),
-    musclePercent: parseNumber(record.musclePercent, 'musclePercent', rowNumber),
     bodyFatPercent: parseNumber(record.bodyFatPercent, 'bodyFatPercent', rowNumber),
     waterPercent: parseNumber(record.waterPercent, 'waterPercent', rowNumber),
+    musclePercent: parseNumber(record.musclePercent, 'musclePercent', rowNumber),
+    bmi: parseNumber(bmiValue, 'bmi', rowNumber),
+    visceralFat: parseNumber(record.visceralFat, 'visceralFat', rowNumber),
+    biologicalAge: parseNumber(biologicalAgeValue, 'biologicalAge', rowNumber),
   }
 
   validateImportedEntry(entry, rowNumber)
@@ -146,15 +147,17 @@ export function parseMeasurementsCsv(rawContent: string): MeasurementInput[] {
 
   const headers = rows[0].map((header) => header.trim())
 
-  const requiredWithoutAge = REQUIRED_COLUMNS.filter((column) => column !== 'biologicalAge')
-  for (const requiredColumn of requiredWithoutAge) {
+  const requiredWithoutAgeMetrics = REQUIRED_COLUMNS.filter(
+    (column) => column !== 'bmi' && column !== 'biologicalAge',
+  )
+  for (const requiredColumn of requiredWithoutAgeMetrics) {
     if (!headers.includes(requiredColumn)) {
       throw new Error(`CSV-Spalte fehlt: ${requiredColumn}`)
     }
   }
 
-  if (!headers.includes('biologicalAge') && !headers.includes('bmi')) {
-    throw new Error('CSV-Spalte fehlt: biologicalAge')
+  if (!headers.includes('bmi') && !headers.includes('biologicalAge')) {
+    throw new Error('CSV-Spalte fehlt: bmi')
   }
 
   const columnLookup = new Map<string, number>()
@@ -170,8 +173,10 @@ export function parseMeasurementsCsv(rawContent: string): MeasurementInput[] {
 
     const rowRecord: ImportRecord = {}
     for (const column of REQUIRED_COLUMNS) {
-      if (column === 'biologicalAge' && !headers.includes('biologicalAge') && headers.includes('bmi')) {
-        rowRecord.bmi = row[columnLookup.get('bmi') ?? -1] ?? ''
+      if (column === 'bmi' && !headers.includes('bmi') && headers.includes('biologicalAge')) {
+        rowRecord.bmi = row[columnLookup.get('biologicalAge') ?? -1] ?? ''
+      } else if (column === 'biologicalAge' && !headers.includes('biologicalAge') && headers.includes('bmi')) {
+        rowRecord.biologicalAge = row[columnLookup.get('bmi') ?? -1] ?? ''
       } else {
         rowRecord[column] = row[columnLookup.get(column) ?? -1] ?? ''
       }

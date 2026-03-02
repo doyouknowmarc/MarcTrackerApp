@@ -1,0 +1,22 @@
+[
+  {"date":"2026-01-01","weightKg":84.2,"bodyFatPercent":24.8,"waterPercent":52.9,"musclePercent":38.6,"bmi":26.1,"visceralFat":11,"biologicalAge":41},
+  {"date":"2026-01-04","weightKg":83.9,"bodyFatPercent":24.6,"waterPercent":53.1,"musclePercent":38.8,"bmi":26.0,"visceralFat":10.8,"biologicalAge":41},
+  {"date":"2026-01-07","weightKg":83.5,"bodyFatPercent":24.3,"waterPercent":53.4,"musclePercent":39.0,"bmi":25.8,"visceralFat":10.6,"biologicalAge":40},
+  {"date":"2026-01-10","weightKg":83.2,"bodyFatPercent":24.1,"waterPercent":53.6,"musclePercent":39.2,"bmi":25.7,"visceralFat":10.5,"biologicalAge":40},
+  {"date":"2026-01-13","weightKg":82.9,"bodyFatPercent":23.9,"waterPercent":53.8,"musclePercent":39.4,"bmi":25.6,"visceralFat":10.4,"biologicalAge":40},
+  {"date":"2026-01-16","weightKg":82.6,"bodyFatPercent":23.7,"waterPercent":54.0,"musclePercent":39.6,"bmi":25.4,"visceralFat":10.2,"biologicalAge":40},
+  {"date":"2026-01-19","weightKg":82.3,"bodyFatPercent":23.5,"waterPercent":54.2,"musclePercent":39.8,"bmi":25.3,"visceralFat":10.1,"biologicalAge":39},
+  {"date":"2026-01-22","weightKg":82.0,"bodyFatPercent":23.3,"waterPercent":54.4,"musclePercent":40.0,"bmi":25.2,"visceralFat":10.0,"biologicalAge":39},
+  {"date":"2026-01-25","weightKg":81.7,"bodyFatPercent":23.1,"waterPercent":54.6,"musclePercent":40.2,"bmi":25.1,"visceralFat":9.8,"biologicalAge":39},
+  {"date":"2026-01-28","weightKg":81.4,"bodyFatPercent":22.9,"waterPercent":54.8,"musclePercent":40.4,"bmi":24.9,"visceralFat":9.7,"biologicalAge":39},
+  {"date":"2026-01-31","weightKg":81.2,"bodyFatPercent":22.7,"waterPercent":55.0,"musclePercent":40.5,"bmi":24.8,"visceralFat":9.6,"biologicalAge":38},
+  {"date":"2026-02-03","weightKg":80.9,"bodyFatPercent":22.5,"waterPercent":55.2,"musclePercent":40.7,"bmi":24.7,"visceralFat":9.5,"biologicalAge":38},
+  {"date":"2026-02-06","weightKg":80.7,"bodyFatPercent":22.3,"waterPercent":55.3,"musclePercent":40.8,"bmi":24.6,"visceralFat":9.4,"biologicalAge":38},
+  {"date":"2026-02-09","weightKg":80.4,"bodyFatPercent":22.1,"waterPercent":55.5,"musclePercent":41.0,"bmi":24.5,"visceralFat":9.2,"biologicalAge":38},
+  {"date":"2026-02-12","weightKg":80.2,"bodyFatPercent":21.9,"waterPercent":55.7,"musclePercent":41.1,"bmi":24.4,"visceralFat":9.1,"biologicalAge":37},
+  {"date":"2026-02-15","weightKg":80.0,"bodyFatPercent":21.7,"waterPercent":55.8,"musclePercent":41.2,"bmi":24.3,"visceralFat":9.0,"biologicalAge":37},
+  {"date":"2026-02-18","weightKg":79.8,"bodyFatPercent":21.6,"waterPercent":55.9,"musclePercent":41.3,"bmi":24.2,"visceralFat":8.9,"biologicalAge":37},
+  {"date":"2026-02-21","weightKg":79.6,"bodyFatPercent":21.4,"waterPercent":56.1,"musclePercent":41.4,"bmi":24.1,"visceralFat":8.8,"biologicalAge":37},
+  {"date":"2026-02-24","weightKg":79.4,"bodyFatPercent":21.3,"waterPercent":56.2,"musclePercent":41.5,"bmi":24.0,"visceralFat":8.7,"biologicalAge":37},
+  {"date":"2026-02-27","weightKg":79.2,"bodyFatPercent":21.2,"waterPercent":56.3,"musclePercent":41.6,"bmi":23.9,"visceralFat":8.6,"biologicalAge":36}
+]

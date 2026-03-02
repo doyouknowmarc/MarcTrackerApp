@@ -12,6 +12,7 @@ type EntryFormState = {
   bodyFatPercent: string
   waterPercent: string
   musclePercent: string
+  bmi: string
   visceralFat: string
   biologicalAge: string
 }
@@ -30,8 +31,9 @@ const FIELD_CONFIGS: FieldConfig[] = [
   { key: 'bodyFatPercent', label: '2. Körperfett', unit: '%', step: 0.1, min: 0, max: 100 },
   { key: 'waterPercent', label: '3. Körperwasser', unit: '%', step: 0.1, min: 0, max: 100 },
   { key: 'musclePercent', label: '4. Muskelmasse', unit: '%', step: 0.1, min: 0, max: 100 },
-  { key: 'visceralFat', label: '5. Viszeralfett', unit: 'Index', step: 0.1, min: 0 },
-  { key: 'biologicalAge', label: '6. Biologisches Alter', unit: 'J', step: 1, min: 1, max: 130 },
+  { key: 'bmi', label: '5. BMI', unit: 'BMI', step: 0.1, min: 0.1 },
+  { key: 'visceralFat', label: '6. Viszeralfett', unit: 'Index', step: 0.1, min: 0 },
+  { key: 'biologicalAge', label: '7. Biologisches Alter', unit: 'J', step: 1, min: 1, max: 130 },
 ]
 
 function createDefaultFormState(date = toIsoDateLocal()): EntryFormState {
@@ -41,6 +43,7 @@ function createDefaultFormState(date = toIsoDateLocal()): EntryFormState {
     bodyFatPercent: '',
     waterPercent: '',
     musclePercent: '',
+    bmi: '',
     visceralFat: '',
     biologicalAge: '',
   }
@@ -61,6 +64,7 @@ function mapMeasurementToFormState(measurement: Measurement, date = toIsoDateLoc
     bodyFatPercent: String(measurement.bodyFatPercent),
     waterPercent: String(measurement.waterPercent),
     musclePercent: String(measurement.musclePercent),
+    bmi: toInputValue(measurement.bmi),
     visceralFat: String(measurement.visceralFat),
     biologicalAge: toInputValue(measurement.biologicalAge),
   }
@@ -188,6 +192,7 @@ export function EntryPage() {
       bodyFatPercent: toNumber(formState.bodyFatPercent),
       waterPercent: toNumber(formState.waterPercent),
       musclePercent: toNumber(formState.musclePercent),
+      bmi: toNumber(formState.bmi),
       visceralFat: toNumber(formState.visceralFat),
       biologicalAge: toNumber(formState.biologicalAge),
     }
@@ -220,7 +225,7 @@ export function EntryPage() {
       <header className="rounded-3xl border border-teal-900/10 bg-white/95 p-5 shadow-sm">
         <h2 className="text-xl font-bold tracking-tight">{editDate ? 'Eintrag bearbeiten' : 'Schnellerfassung'}</h2>
         <p className="mt-1 text-sm text-slate-600">
-          Reihenfolge ist jetzt wie auf deiner Waage: kg, Körperfett, Wasser, Muskelmasse, Viszeralfett, biologisches Alter.
+          Reihenfolge ist jetzt wie auf deiner Waage: kg, Körperfett, Wasser, Muskelmasse, BMI, Viszeralfett, biologisches Alter.
         </p>
         {hint ? <p className="mt-3 rounded-xl bg-teal-50 px-3 py-2 text-sm text-teal-900">{hint}</p> : null}
       </header>
@@ -296,15 +301,13 @@ export function EntryPage() {
           ))}
         </div>
 
-        <div className="sticky bottom-16 z-20 rounded-2xl bg-white/95 p-2 backdrop-blur">
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="w-full rounded-xl bg-teal-700 px-4 py-3 text-base font-semibold text-white transition hover:bg-teal-600 disabled:cursor-not-allowed disabled:bg-teal-300"
-          >
-            {isSaving ? 'Speichere...' : editDate ? 'Aktualisieren' : 'Speichern'}
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="w-full rounded-xl bg-teal-700 px-4 py-3 text-base font-semibold text-white transition hover:bg-teal-600 disabled:cursor-not-allowed disabled:bg-teal-300"
+        >
+          {isSaving ? 'Speichere...' : editDate ? 'Aktualisieren' : 'Speichern'}
+        </button>
 
         <Link to="/history" className="block text-center text-sm font-semibold text-teal-700 hover:underline">
           Zum Verlauf

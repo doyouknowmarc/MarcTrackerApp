@@ -20,11 +20,12 @@ describe('DexieMeasurementRepository', () => {
     await repository.upsertByDate({
       date: '2026-03-01',
       weightKg: 80,
-      biologicalAge: 35,
-      visceralFat: 8,
-      musclePercent: 40,
       bodyFatPercent: 21,
       waterPercent: 56,
+      musclePercent: 40,
+      bmi: 24.1,
+      visceralFat: 8,
+      biologicalAge: 35,
     })
 
     const first = await repository.getByDate('2026-03-01')
@@ -33,11 +34,12 @@ describe('DexieMeasurementRepository', () => {
     await repository.upsertByDate({
       date: '2026-03-01',
       weightKg: 79,
-      biologicalAge: 34,
-      visceralFat: 7.8,
+      bodyFatPercent: 20.8,
+      waterPercent: 56.4,
       musclePercent: 40.5,
-      bodyFatPercent: 20.5,
-      waterPercent: 56.5,
+      bmi: 23.9,
+      visceralFat: 7.8,
+      biologicalAge: 34,
     })
 
     const second = await repository.getByDate('2026-03-01')
@@ -51,18 +53,19 @@ describe('DexieMeasurementRepository', () => {
     await repository.upsertByDate({
       date: '2026-03-01',
       weightKg: 80,
-      biologicalAge: 35,
-      visceralFat: 8,
-      musclePercent: 40,
       bodyFatPercent: 21,
       waterPercent: 56,
+      musclePercent: 40,
+      bmi: 24.1,
+      visceralFat: 8,
+      biologicalAge: 35,
     })
 
     const csv = await repository.exportCsv()
     const json = await repository.exportJson()
 
     expect(csv.split('\n')[0]).toBe(
-      'date,weightKg,biologicalAge,visceralFat,musclePercent,bodyFatPercent,waterPercent,createdAt,updatedAt',
+      'date,weightKg,bodyFatPercent,waterPercent,musclePercent,bmi,visceralFat,biologicalAge,createdAt,updatedAt',
     )
     expect(json).toContain('"date": "2026-03-01"')
   })
@@ -71,11 +74,12 @@ describe('DexieMeasurementRepository', () => {
     await repository.upsertByDate({
       date: '2026-03-01',
       weightKg: 80,
-      biologicalAge: 35,
-      visceralFat: 8,
-      musclePercent: 40,
       bodyFatPercent: 21,
       waterPercent: 56,
+      musclePercent: 40,
+      bmi: 24.1,
+      visceralFat: 8,
+      biologicalAge: 35,
     })
 
     await repository.deleteByDate('2026-03-01')
@@ -88,20 +92,22 @@ describe('DexieMeasurementRepository', () => {
     await repository.upsertByDate({
       date: '2026-03-01',
       weightKg: 80,
-      biologicalAge: 35,
-      visceralFat: 8,
-      musclePercent: 40,
       bodyFatPercent: 21,
       waterPercent: 56,
+      musclePercent: 40,
+      bmi: 24.1,
+      visceralFat: 8,
+      biologicalAge: 35,
     })
     await repository.upsertByDate({
       date: '2026-03-02',
       weightKg: 79.5,
-      biologicalAge: 34,
-      visceralFat: 7.8,
-      musclePercent: 40.2,
       bodyFatPercent: 20.9,
       waterPercent: 56.2,
+      musclePercent: 40.2,
+      bmi: 23.9,
+      visceralFat: 7.8,
+      biologicalAge: 34,
     })
 
     await repository.clearAll()

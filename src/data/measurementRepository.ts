@@ -4,11 +4,12 @@ import { appDb, type MarcTrackerDB } from './db'
 const CSV_COLUMNS: Array<keyof Measurement> = [
   'date',
   'weightKg',
-  'biologicalAge',
-  'visceralFat',
-  'musclePercent',
   'bodyFatPercent',
   'waterPercent',
+  'musclePercent',
+  'bmi',
+  'visceralFat',
+  'biologicalAge',
   'createdAt',
   'updatedAt',
 ]
@@ -35,6 +36,24 @@ export function serializeMeasurementsToJson(measurements: Measurement[]): string
   return JSON.stringify(measurements, null, 2)
 }
 
+function normalizeMeasurement(measurement: Partial<Measurement> & { date: string }): Measurement {
+  const biologicalAge = typeof measurement.biologicalAge === 'number' ? measurement.biologicalAge : 0
+  const bmi = typeof measurement.bmi === 'number' ? measurement.bmi : biologicalAge
+
+  return {
+    date: measurement.date,
+    weightKg: measurement.weightKg ?? 0,
+    bodyFatPercent: measurement.bodyFatPercent ?? 0,
+    waterPercent: measurement.waterPercent ?? 0,
+    musclePercent: measurement.musclePercent ?? 0,
+    bmi,
+    visceralFat: measurement.visceralFat ?? 0,
+    biologicalAge,
+    createdAt: measurement.createdAt ?? new Date().toISOString(),
+    updatedAt: measurement.updatedAt ?? new Date().toISOString(),
+  }
+}
+
 export class DexieMeasurementRepository implements MeasurementRepository {
   private readonly db: MarcTrackerDB
 
@@ -56,12 +75,15 @@ export class DexieMeasurementRepository implements MeasurementRepository {
   }
 
   async getByDate(date: string): Promise<Measurement | undefined> {
-    return this.db.measurements.get(date)
+    const measurement = await this.db.measurements.get(date)
+    return measurement ? normalizeMeasurement(measurement) : undefined
   }
 
   async listAll(): Promise<Measurement[]> {
     const measurements = await this.db.measurements.toArray()
-    return measurements.sort((left, right) => left.date.localeCompare(right.date))
+    return measurements
+      .map((measurement) => normalizeMeasurement(measurement))
+      .sort((left, right) => left.date.localeCompare(right.date))
   }
 
   async deleteByDate(date: string): Promise<void> {

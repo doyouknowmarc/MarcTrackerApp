@@ -77,6 +77,10 @@ export function HistoryPage() {
                 <dd className="font-semibold">{entry.musclePercent.toFixed(1)} %</dd>
               </div>
               <div className="rounded-xl bg-slate-50 px-3 py-2">
+                <dt className="text-slate-500">BMI</dt>
+                <dd className="font-semibold">{entry.bmi.toFixed(1)}</dd>
+              </div>
+              <div className="rounded-xl bg-slate-50 px-3 py-2">
                 <dt className="text-slate-500">Viszeralfett</dt>
                 <dd className="font-semibold">{entry.visceralFat.toFixed(1)}</dd>
               </div>

@@ -1,7 +1,8 @@
 import Dexie, { type Table } from 'dexie'
 import type { Measurement } from '../types/measurement'
 
-type LegacyMeasurementV1 = Measurement & {
+type LegacyMeasurement = Partial<Measurement> & {
+  date: string
   bmi?: number
   biologicalAge?: number
 }
@@ -24,11 +25,26 @@ export class MarcTrackerDB extends Dexie {
         transaction
           .table('measurements')
           .toCollection()
-          .modify((entry: LegacyMeasurementV1) => {
+          .modify((entry: LegacyMeasurement) => {
             if (typeof entry.biologicalAge !== 'number') {
               entry.biologicalAge = typeof entry.bmi === 'number' ? entry.bmi : 0
             }
             delete entry.bmi
+          }),
+      )
+
+    this.version(3)
+      .stores({
+        measurements: '&date, updatedAt',
+      })
+      .upgrade((transaction) =>
+        transaction
+          .table('measurements')
+          .toCollection()
+          .modify((entry: LegacyMeasurement) => {
+            if (typeof entry.bmi !== 'number') {
+              entry.bmi = typeof entry.biologicalAge === 'number' ? entry.biologicalAge : 0
+            }
           }),
       )
   }

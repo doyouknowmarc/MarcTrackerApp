@@ -1,10 +1,13 @@
 # TrackerApp PWA
 
+![TrackerApp Screenshot](./FitnessTrackerApp.png)
+
 TrackerApp ist eine mobile-first Progressive Web App zum Tracken von:
 - Gewicht (kg)
 - Körperfett (%)
 - Körperwasser (%)
 - Muskelmasse (%)
+- BMI
 - Viszeralfett (Index)
 - Biologisches Alter
 
@@ -17,8 +20,15 @@ Die Daten werden lokal im Browser (`IndexedDB`) gespeichert. Kein Login, kein Ba
 - Dashboard mit Gewichtstrend und KPI-Änderungen (7/30 Tage)
 - Verlauf mit Bearbeiten/Löschen
 - CSV/JSON Export
-- CSV/JSON Import (inkl. Legacy-Import alter `bmi`-Dateien)
+- CSV/JSON Import (inkl. Legacy-Import ohne `bmi`)
 - Offline-fähig als PWA
+
+## Demo-Datensatz
+Für Tests liegen importierbare Beispieldateien unter:
+- `demo/trackerapp-demo.csv`
+- `demo/trackerapp-demo.json`
+
+Import in der App unter `Datenverwaltung -> Import`.
 
 ## Development
 ```bash
