@@ -32,7 +32,7 @@ const FIELD_CONFIGS: FieldConfig[] = [
   { key: 'waterPercent', label: '3. Körperwasser', unit: '%', step: 0.1, min: 0, max: 100 },
   { key: 'musclePercent', label: '4. Muskelmasse', unit: '%', step: 0.1, min: 0, max: 100 },
   { key: 'bmi', label: '5. BMI', unit: 'BMI', step: 0.1, min: 0.1 },
-  { key: 'visceralFat', label: '6. Viszeralfett', unit: 'Index', step: 0.1, min: 0 },
+  { key: 'visceralFat', label: '6. Viszeralfett', unit: '', step: 0.1, min: 0 },
   { key: 'biologicalAge', label: '7. Biologisches Alter', unit: 'J', step: 1, min: 1, max: 130 },
 ]
 

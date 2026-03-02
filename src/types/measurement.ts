@@ -48,6 +48,6 @@ export const METRIC_LABELS: Record<MetricKey, { label: string; unit: string; dec
   waterPercent: { label: 'Körperwasser', unit: '%', decimals: 1 },
   musclePercent: { label: 'Muskelmasse', unit: '%', decimals: 1 },
   bmi: { label: 'BMI', unit: '', decimals: 1 },
-  visceralFat: { label: 'Viszeralfett', unit: 'Index', decimals: 1 },
+  visceralFat: { label: 'Viszeralfett', unit: '', decimals: 1 },
   biologicalAge: { label: 'Biologisches Alter', unit: 'J', decimals: 0 },
 }

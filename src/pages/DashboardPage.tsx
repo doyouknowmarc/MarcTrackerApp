@@ -1,8 +1,8 @@
-import { lazy, Suspense, useEffect, useMemo } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { MetricCard } from '../components/MetricCard'
 import { useMeasurements } from '../context/measurementsState'
-import { METRIC_ORDER } from '../types/measurement'
+import { METRIC_LABELS, METRIC_ORDER, type MetricKey } from '../types/measurement'
 import { calculateMetricSnapshot } from '../utils/analytics'
 import { formatIsoDate } from '../utils/date'
 
@@ -14,11 +14,17 @@ const WeightChart = lazy(async () =>
   import('../components/WeightChart').then((module) => ({ default: module.WeightChart })),
 )
 
+function formatMetricValue(metric: MetricKey, value: number): string {
+  const metadata = METRIC_LABELS[metric]
+  return `${value.toFixed(metadata.decimals)}${metadata.unit ? ` ${metadata.unit}` : ''}`
+}
+
 export function DashboardPage() {
   const { entries, error, isLoading } = useMeasurements()
   const navigate = useNavigate()
   const location = useLocation()
   const flash = (location.state as DashboardLocationState | null)?.flash ?? null
+  const [selectedMetric, setSelectedMetric] = useState<MetricKey>('weightKg')
 
   useEffect(() => {
     if (!flash) {
@@ -43,6 +49,9 @@ export function DashboardPage() {
     [entries],
   )
 
+  const selectedMetricMeta = METRIC_LABELS[selectedMetric]
+  const selectedLatestValue = latestEntry ? latestEntry[selectedMetric] : null
+
   return (
     <section className="space-y-5">
       {flash ? (
@@ -59,7 +68,7 @@ export function DashboardPage() {
         <div className="bg-gradient-to-r from-teal-700 to-teal-600 px-4 py-4 text-white">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold tracking-tight">Gewichtstrend</h2>
+              <h2 className="text-xl font-bold tracking-tight">{selectedMetricMeta.label} Trend</h2>
               <p className="text-sm text-teal-50">
                 {latestEntry
                   ? `Letzter Eintrag am ${formatIsoDate(latestEntry.date)}`
@@ -74,9 +83,28 @@ export function DashboardPage() {
             </Link>
           </div>
 
-          {latestEntry ? (
-            <p className="mt-3 text-3xl font-bold tracking-tight">{latestEntry.weightKg.toFixed(1)} kg</p>
-          ) : null}
+          <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+            {selectedLatestValue !== null ? (
+              <p className="text-3xl font-bold tracking-tight">{formatMetricValue(selectedMetric, selectedLatestValue)}</p>
+            ) : (
+              <p className="text-sm text-teal-50">Noch kein Wert vorhanden.</p>
+            )}
+
+            <label className="flex items-center gap-2 text-sm">
+              <span className="font-semibold text-teal-50">Metrik</span>
+              <select
+                value={selectedMetric}
+                onChange={(event) => setSelectedMetric(event.target.value as MetricKey)}
+                className="rounded-lg border border-white/30 bg-white/20 px-2 py-1 text-sm font-semibold text-white backdrop-blur focus:outline-none"
+              >
+                {METRIC_ORDER.map((metric) => (
+                  <option key={metric} value={metric} className="text-slate-900">
+                    {METRIC_LABELS[metric].label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         </div>
 
         <div className="p-4">
@@ -84,7 +112,7 @@ export function DashboardPage() {
             <p>Lade Daten...</p>
           ) : (
             <Suspense fallback={<p>Diagramm wird geladen...</p>}>
-              <WeightChart entries={entries} />
+              <WeightChart entries={entries} metric={selectedMetric} />
             </Suspense>
           )}
         </div>

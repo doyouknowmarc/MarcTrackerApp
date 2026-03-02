@@ -8,7 +8,7 @@ TrackerApp ist eine mobile-first Progressive Web App zum Tracken von:
 - Körperwasser (%)
 - Muskelmasse (%)
 - BMI
-- Viszeralfett (Index)
+- Viszeralfett
 - Biologisches Alter
 
 Die Daten werden lokal im Browser (`IndexedDB`) gespeichert. Kein Login, kein Backend.
