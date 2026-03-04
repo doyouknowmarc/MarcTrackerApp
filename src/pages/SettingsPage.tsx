@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMeasurements } from '../context/measurementsState'
+import { formatTemplate, getMetricLabel, getThemeLabel } from '../i18n/ui'
+import { useAppLocale } from '../hooks/useAppLocale'
+import { METRIC_ORDER, type MetricKey } from '../types/measurement'
+import type { AppLanguage, AppTheme } from '../types/settings'
 import { toIsoDateLocal } from '../utils/date'
 import { downloadTextFile } from '../utils/download'
-import { parseMeasurementsCsv, parseMeasurementsJson } from '../utils/import'
+import { parseMeasurementsCsv, parseMeasurementsJsonImport } from '../utils/import'
 
 type StorageInfo = {
   isSupported: boolean
@@ -11,9 +15,9 @@ type StorageInfo = {
   persisted: boolean | null
 }
 
-function formatBytes(bytes: number | null): string {
+function formatBytes(bytes: number | null, unknownLabel: string): string {
   if (bytes === null || !Number.isFinite(bytes)) {
-    return 'Unbekannt'
+    return unknownLabel
   }
 
   const units = ['B', 'KB', 'MB', 'GB']
@@ -46,8 +50,17 @@ function detectFileFormat(file: File): 'csv' | 'json' {
   return 'json'
 }
 
+const LANGUAGE_OPTIONS: AppLanguage[] = ['de', 'en']
+const THEME_OPTIONS: AppTheme[] = ['green', 'mono', 'creative']
+
+function sortTrackedMetrics(metrics: MetricKey[]): MetricKey[] {
+  const metricSet = new Set(metrics)
+  return METRIC_ORDER.filter((metric) => metricSet.has(metric))
+}
+
 export function SettingsPage() {
-  const { exportCsv, exportJson, importEntries, clearAllEntries, entries } = useMeasurements()
+  const { exportCsv, exportJson, importEntries, clearAllEntries, entries, updateSettings, settings } = useMeasurements()
+  const { language, messages } = useAppLocale()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [fileToImport, setFileToImport] = useState<File | null>(null)
@@ -117,6 +130,49 @@ export function SettingsPage() {
     return Math.min(100, (storageInfo.usageBytes / storageInfo.quotaBytes) * 100)
   }, [storageInfo.quotaBytes, storageInfo.usageBytes])
 
+  const trackedMetricSet = useMemo(() => new Set(settings.trackedMetrics), [settings.trackedMetrics])
+
+  const handleLanguageChange = (nextLanguage: AppLanguage) => {
+    if (nextLanguage === settings.language) {
+      return
+    }
+    setError(null)
+    updateSettings({
+      language: nextLanguage,
+      onboardingCompleted: true,
+    })
+  }
+
+  const handleThemeChange = (nextTheme: AppTheme) => {
+    if (nextTheme === settings.theme) {
+      return
+    }
+    setError(null)
+    updateSettings({
+      theme: nextTheme,
+      onboardingCompleted: true,
+    })
+  }
+
+  const handleToggleMetric = (metric: MetricKey) => {
+    const hasMetric = trackedMetricSet.has(metric)
+
+    if (hasMetric && settings.trackedMetrics.length <= 1) {
+      setError(messages.onboardingNeedMetric)
+      return
+    }
+
+    const nextMetrics = hasMetric
+      ? settings.trackedMetrics.filter((item) => item !== metric)
+      : [...settings.trackedMetrics, metric]
+
+    setError(null)
+    updateSettings({
+      trackedMetrics: sortTrackedMetrics(nextMetrics),
+      onboardingCompleted: true,
+    })
+  }
+
   const exportData = async (format: 'csv' | 'json') => {
     setError(null)
     setSuccess(null)
@@ -128,15 +184,15 @@ export function SettingsPage() {
       const mimeType = format === 'csv' ? 'text/csv;charset=utf-8' : 'application/json;charset=utf-8'
 
       downloadTextFile(content, filename, mimeType)
-      setSuccess(`${format.toUpperCase()} wurde exportiert.`)
+      setSuccess(`${format.toUpperCase()} ${messages.exportDone}`)
     } catch {
-      setError('Export ist fehlgeschlagen.')
+      setError(messages.exportFailed)
     }
   }
 
   const handleImport = async () => {
     if (!fileToImport) {
-      setError('Bitte zuerst eine CSV- oder JSON-Datei auswählen.')
+      setError(messages.importNeedFile)
       setSuccess(null)
       return
     }
@@ -148,21 +204,34 @@ export function SettingsPage() {
     try {
       const format = detectFileFormat(fileToImport)
       const rawContent = await fileToImport.text()
-      const importedRecords =
-        format === 'csv' ? parseMeasurementsCsv(rawContent) : parseMeasurementsJson(rawContent)
+      const importPayload =
+        format === 'csv'
+          ? { entries: parseMeasurementsCsv(rawContent), settings: undefined }
+          : parseMeasurementsJsonImport(rawContent)
 
-      const summary = await importEntries(importedRecords)
+      const summary = await importEntries(importPayload.entries)
+      let successMessage = formatTemplate(messages.importSuccess, {
+        imported: summary.imported,
+        created: summary.created,
+        updated: summary.updated,
+      })
 
-      setSuccess(
-        `Import erfolgreich: ${summary.imported} Datensätze (${summary.created} neu, ${summary.updated} aktualisiert).`,
-      )
+      if (importPayload.settings) {
+        updateSettings({
+          ...importPayload.settings,
+          onboardingCompleted: true,
+        })
+        successMessage = `${successMessage} ${messages.importSettingsApplied}`
+      }
+
+      setSuccess(successMessage)
       setFileToImport(null)
       setFileInputKey((previous) => previous + 1)
     } catch (importError) {
       if (importError instanceof Error) {
         setError(importError.message)
       } else {
-        setError('Import ist fehlgeschlagen.')
+        setError(messages.importFailed)
       }
     } finally {
       setIsImporting(false)
@@ -171,14 +240,12 @@ export function SettingsPage() {
 
   const handleDeleteAll = async () => {
     if (entries.length === 0) {
-      setError('Es sind keine Daten zum Löschen vorhanden.')
+      setError(messages.noDataToDelete)
       setSuccess(null)
       return
     }
 
-    const shouldDelete = window.confirm(
-      'Alle lokalen Datensätze unwiderruflich löschen? Dieser Schritt kann nicht rückgängig gemacht werden.',
-    )
+    const shouldDelete = window.confirm(messages.confirmDeleteAll)
 
     if (!shouldDelete) {
       return
@@ -189,18 +256,18 @@ export function SettingsPage() {
 
     try {
       await clearAllEntries()
-      setSuccess('Alle lokalen Datensätze wurden gelöscht.')
+      setSuccess(messages.allDeleted)
     } catch {
-      setError('Löschen ist fehlgeschlagen.')
+      setError(messages.deleteFailed)
     }
   }
 
   return (
     <section className="space-y-4">
       <header className="rounded-3xl border border-teal-900/10 bg-white/95 p-5 shadow-sm">
-        <h2 className="text-xl font-bold tracking-tight">Datenverwaltung</h2>
+        <h2 className="text-xl font-bold tracking-tight">{messages.settingsTitle}</h2>
         <p className="mt-1 text-sm text-slate-600">
-          Exportiere Backups oder importiere bestehende Datensätze aus CSV/JSON.
+          {messages.settingsHint}
         </p>
       </header>
 
@@ -213,19 +280,103 @@ export function SettingsPage() {
       ) : null}
 
       <article className="rounded-3xl border border-teal-900/10 bg-white/95 p-4 shadow-sm">
-        <h3 className="text-base font-bold">Lokaler Speicher</h3>
+        <h3 className="text-base font-bold">{messages.preferencesTitle}</h3>
+        <p className="mt-1 text-sm text-slate-600">{messages.preferencesHint}</p>
+
+        <div className="mt-4 space-y-4">
+          <section>
+            <p className="mb-2 text-sm font-semibold text-slate-700">{messages.onboardingLanguage}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {LANGUAGE_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => handleLanguageChange(option)}
+                  className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                    settings.language === option
+                      ? 'border-teal-700 bg-teal-700 text-white'
+                      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  {option === 'de' ? 'Deutsch' : 'English'}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <p className="mb-2 text-sm font-semibold text-slate-700">{messages.onboardingTheme}</p>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {THEME_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => handleThemeChange(option)}
+                  className={`rounded-xl border px-3 py-2 text-left text-sm font-semibold transition ${
+                    settings.theme === option
+                      ? 'border-teal-700 bg-teal-50 text-teal-900'
+                      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  {getThemeLabel(option, language)}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <p className="mb-2 text-sm font-semibold text-slate-700">{messages.onboardingTrackedMetrics}</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {METRIC_ORDER.map((metric) => {
+                const active = trackedMetricSet.has(metric)
+                return (
+                  <button
+                    key={metric}
+                    type="button"
+                    onClick={() => handleToggleMetric(metric)}
+                    className={`flex items-center justify-between rounded-xl border px-3 py-2 text-sm font-medium transition ${
+                      active
+                        ? 'border-teal-700 bg-teal-50 text-teal-900'
+                        : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>{getMetricLabel(metric, language)}</span>
+                    <span className="text-xs font-bold uppercase tracking-wide">
+                      {active ? (language === 'de' ? 'An' : 'On') : language === 'de' ? 'Aus' : 'Off'}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article className="rounded-3xl border border-teal-900/10 bg-white/95 p-4 shadow-sm">
+        <h3 className="text-base font-bold">{messages.storageTitle}</h3>
         <p className="mt-1 text-sm text-slate-600">
-          Deine Daten liegen in IndexedDB auf diesem Gerät und werden nicht in die Cloud synchronisiert.
+          {messages.storageHint}
         </p>
 
         <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-          <p className="rounded-xl bg-slate-50 px-3 py-2">Datensätze: <strong>{entries.length}</strong></p>
           <p className="rounded-xl bg-slate-50 px-3 py-2">
-            Belegt: <strong>{formatBytes(storageInfo.usageBytes)}</strong>
+            {messages.storageRecords}: <strong>{entries.length}</strong>
           </p>
-          <p className="rounded-xl bg-slate-50 px-3 py-2">Limit: <strong>{formatBytes(storageInfo.quotaBytes)}</strong></p>
           <p className="rounded-xl bg-slate-50 px-3 py-2">
-            Persistenz: <strong>{storageInfo.persisted === null ? 'Unbekannt' : storageInfo.persisted ? 'Aktiv' : 'Nicht zugesichert'}</strong>
+            {messages.storageUsed}: <strong>{formatBytes(storageInfo.usageBytes, messages.storageUnknown)}</strong>
+          </p>
+          <p className="rounded-xl bg-slate-50 px-3 py-2">
+            {messages.storageLimit}: <strong>{formatBytes(storageInfo.quotaBytes, messages.storageUnknown)}</strong>
+          </p>
+          <p className="rounded-xl bg-slate-50 px-3 py-2">
+            {messages.storagePersistence}:{' '}
+            <strong>
+              {storageInfo.persisted === null
+                ? messages.storageUnknown
+                : storageInfo.persisted
+                  ? messages.storageGuaranteed
+                  : messages.storageNotGuaranteed}
+            </strong>
           </p>
         </div>
 
@@ -234,47 +385,50 @@ export function SettingsPage() {
             <div className="h-2 overflow-hidden rounded-full bg-slate-200">
               <div className="h-full rounded-full bg-teal-600" style={{ width: `${usagePercent}%` }} />
             </div>
-            <p className="mt-1 text-xs text-slate-500">Speichernutzung: {usagePercent.toFixed(1)} %</p>
+            <p className="mt-1 text-xs text-slate-500">
+              {messages.storageUsagePercent}: {usagePercent.toFixed(1)} %
+            </p>
           </div>
         ) : null}
 
         {!storageInfo.isSupported ? (
           <p className="mt-2 text-xs text-amber-700">
-            Browser liefert keine Storage-Statistiken. Exportiere regelmäßig als Backup.
+            {messages.storageStatsUnavailable}
           </p>
         ) : null}
       </article>
 
       <article className="rounded-3xl border border-teal-900/10 bg-white/95 p-4 shadow-sm">
-        <h3 className="text-base font-bold">Export</h3>
-        <p className="mt-1 text-sm text-slate-600">Speichere deine Daten lokal als Backup-Datei.</p>
+        <h3 className="text-base font-bold">{messages.export}</h3>
+        <p className="mt-1 text-sm text-slate-600">{messages.exportHint}</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <button
             type="button"
             className="rounded-xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-teal-600"
             onClick={() => void exportData('csv')}
           >
-            CSV exportieren
+            CSV {messages.export}
           </button>
           <button
             type="button"
             className="rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
             onClick={() => void exportData('json')}
           >
-            JSON exportieren
+            JSON {messages.export}
           </button>
         </div>
       </article>
 
       <article className="rounded-3xl border border-teal-900/10 bg-white/95 p-4 shadow-sm">
-        <h3 className="text-base font-bold">Import</h3>
+        <h3 className="text-base font-bold">{messages.import}</h3>
         <p className="mt-1 text-sm text-slate-600">
-          Unterstützt CSV aus TrackerApp-Export und JSON-Array mit denselben Feldern.
+          {messages.importHint}
         </p>
+        <p className="mt-1 text-xs text-slate-500">{messages.importSupportsHint}</p>
 
         <div className="mt-3 space-y-3">
           <label className="block">
-            <span className="mb-1 block text-sm font-semibold text-slate-700">Datei auswählen</span>
+            <span className="mb-1 block text-sm font-semibold text-slate-700">{messages.selectFile}</span>
             <input
               key={fileInputKey}
               type="file"
@@ -295,28 +449,28 @@ export function SettingsPage() {
             disabled={isImporting}
             className="w-full rounded-xl bg-amber-500 px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:bg-amber-200"
           >
-            {isImporting ? 'Importiere...' : 'Import starten'}
+            {isImporting ? messages.importing : messages.importStart}
           </button>
 
           {fileToImport ? (
             <p className="text-xs text-slate-500">
-              Ausgewählt: {fileToImport.name} ({Math.max(1, Math.round(fileToImport.size / 1024))} KB)
+              {messages.selectedFile}: {fileToImport.name} ({Math.max(1, Math.round(fileToImport.size / 1024))} KB)
             </p>
           ) : null}
         </div>
       </article>
 
       <article className="rounded-3xl border border-rose-200 bg-rose-50/60 p-4 shadow-sm">
-        <h3 className="text-base font-bold text-rose-900">Gefahrenzone</h3>
+        <h3 className="text-base font-bold text-rose-900">{messages.dangerZone}</h3>
         <p className="mt-1 text-sm text-rose-800">
-          Löscht alle aktuell lokal gespeicherten Messwerte aus IndexedDB.
+          {messages.deleteAllHint}
         </p>
         <button
           type="button"
           onClick={() => void handleDeleteAll()}
           className="mt-3 w-full rounded-xl bg-rose-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-600"
         >
-          Alle lokalen Daten löschen
+          {messages.deleteAll}
         </button>
       </article>
     </section>

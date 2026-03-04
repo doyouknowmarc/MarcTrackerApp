@@ -1,13 +1,15 @@
 import { NavLink } from 'react-router-dom'
-
-const navItems = [
-  { to: '/', label: 'Dashboard', short: 'DB' },
-  { to: '/entry', label: 'Eintrag', short: 'IN' },
-  { to: '/history', label: 'Verlauf', short: 'VH' },
-  { to: '/settings', label: 'Daten', short: 'DT' },
-]
+import { useAppLocale } from '../hooks/useAppLocale'
 
 export function BottomNav() {
+  const { messages } = useAppLocale()
+  const navItems = [
+    { to: '/', label: messages.dashboard, short: 'DB' },
+    { to: '/entry', label: messages.entry, short: 'IN' },
+    { to: '/history', label: messages.history, short: 'VH' },
+    { to: '/settings', label: messages.data, short: 'DT' },
+  ]
+
   return (
     <nav className="sticky bottom-0 z-30 px-3 py-3">
       <ul className="mx-auto grid max-w-3xl grid-cols-4 gap-2 rounded-2xl border border-teal-900/10 bg-white/90 p-2 shadow-lg backdrop-blur">

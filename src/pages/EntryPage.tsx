@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { StepNumberField } from '../components/StepNumberField'
 import { useMeasurements } from '../context/measurementsState'
-import type { Measurement, MeasurementInput } from '../types/measurement'
+import { formatTemplate, getMetricLabel, getMetricUnit } from '../i18n/ui'
+import { useAppLocale } from '../hooks/useAppLocale'
+import { METRIC_ORDER, type Measurement, type MeasurementInput, type MetricKey } from '../types/measurement'
 import { formatIsoDate, toIsoDateLocal } from '../utils/date'
 import { hasValidationErrors, validateMeasurementInput, type ValidationErrors } from '../utils/validation'
 
@@ -18,22 +20,20 @@ type EntryFormState = {
 }
 
 type FieldConfig = {
-  key: keyof Omit<EntryFormState, 'date'>
-  label: string
-  unit: string
+  key: MetricKey
   step: number
   min?: number
   max?: number
 }
 
 const FIELD_CONFIGS: FieldConfig[] = [
-  { key: 'weightKg', label: '1. Gewicht', unit: 'kg', step: 0.1, min: 0.1 },
-  { key: 'bodyFatPercent', label: '2. Körperfett', unit: '%', step: 0.1, min: 0, max: 100 },
-  { key: 'waterPercent', label: '3. Körperwasser', unit: '%', step: 0.1, min: 0, max: 100 },
-  { key: 'musclePercent', label: '4. Muskelmasse', unit: '%', step: 0.1, min: 0, max: 100 },
-  { key: 'bmi', label: '5. BMI', unit: 'BMI', step: 0.1, min: 0.1 },
-  { key: 'visceralFat', label: '6. Viszeralfett', unit: '', step: 0.1, min: 0 },
-  { key: 'biologicalAge', label: '7. Biologisches Alter', unit: 'J', step: 1, min: 1, max: 130 },
+  { key: 'weightKg', step: 0.1, min: 0.1 },
+  { key: 'bodyFatPercent', step: 0.1, min: 0, max: 100 },
+  { key: 'waterPercent', step: 0.1, min: 0, max: 100 },
+  { key: 'musclePercent', step: 0.1, min: 0, max: 100 },
+  { key: 'bmi', step: 0.1, min: 0.1 },
+  { key: 'visceralFat', step: 0.1, min: 0 },
+  { key: 'biologicalAge', step: 1, min: 1, max: 130 },
 ]
 
 function createDefaultFormState(date = toIsoDateLocal()): EntryFormState {
@@ -89,7 +89,8 @@ function clamp(value: number, min?: number, max?: number): number {
 }
 
 export function EntryPage() {
-  const { entries, saveEntry, isLoading } = useMeasurements()
+  const { entries, saveEntry, isLoading, settings } = useMeasurements()
+  const { language, messages } = useAppLocale()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [formState, setFormState] = useState<EntryFormState>(createDefaultFormState())
@@ -100,6 +101,10 @@ export function EntryPage() {
   const [isDirty, setIsDirty] = useState(false)
 
   const editDate = searchParams.get('date')
+  const trackedMetrics = useMemo(
+    () => METRIC_ORDER.filter((metric) => settings.trackedMetrics.includes(metric)),
+    [settings.trackedMetrics],
+  )
 
   const latestEntry = entries.length > 0 ? entries[entries.length - 1] : undefined
 
@@ -127,14 +132,14 @@ export function EntryPage() {
 
     if (latestEntry) {
       setFormState(mapMeasurementToFormState(latestEntry))
-      setHint(`Werte vom ${formatIsoDate(latestEntry.date)} wurden vorausgefüllt.`)
+      setHint(formatTemplate(messages.saveUpdatedMessage, { date: formatIsoDate(latestEntry.date) }))
     } else {
       setFormState(createDefaultFormState())
-      setHint('Erfasse deinen ersten Datensatz.')
+      setHint(messages.firstRecordHint)
     }
 
     setErrors({})
-  }, [editDate, existingEntry, isDirty, isLoading, latestEntry])
+  }, [editDate, existingEntry, isDirty, isLoading, latestEntry, messages.firstRecordHint, messages.saveUpdatedMessage])
 
   const handleChange = (field: keyof EntryFormState, value: string) => {
     setIsDirty(true)
@@ -171,14 +176,14 @@ export function EntryPage() {
 
     setFormState(mapMeasurementToFormState(latestEntry))
     setIsDirty(true)
-    setHint(`Vorwerte vom ${formatIsoDate(latestEntry.date)} übernommen.`)
+    setHint(formatTemplate(messages.saveUpdatedMessage, { date: formatIsoDate(latestEntry.date) }))
     setErrors({})
   }
 
   const handleClear = () => {
     setFormState(createDefaultFormState())
     setIsDirty(true)
-    setHint('Formular geleert.')
+    setHint(messages.formClearedMessage)
     setErrors({})
   }
 
@@ -186,18 +191,32 @@ export function EntryPage() {
     event.preventDefault()
     setSubmitError(null)
 
+    const entryForDate = entries.find((entry) => entry.date === formState.date) ?? latestEntry
+    const sourceEntry = entryForDate ?? null
+    const valueForUntrackedMetric = (metric: MetricKey): number => sourceEntry?.[metric] ?? 0
+
     const parsedInput: MeasurementInput = {
       date: formState.date,
-      weightKg: toNumber(formState.weightKg),
-      bodyFatPercent: toNumber(formState.bodyFatPercent),
-      waterPercent: toNumber(formState.waterPercent),
-      musclePercent: toNumber(formState.musclePercent),
-      bmi: toNumber(formState.bmi),
-      visceralFat: toNumber(formState.visceralFat),
-      biologicalAge: toNumber(formState.biologicalAge),
+      weightKg: trackedMetrics.includes('weightKg') ? toNumber(formState.weightKg) : valueForUntrackedMetric('weightKg'),
+      bodyFatPercent: trackedMetrics.includes('bodyFatPercent')
+        ? toNumber(formState.bodyFatPercent)
+        : valueForUntrackedMetric('bodyFatPercent'),
+      waterPercent: trackedMetrics.includes('waterPercent')
+        ? toNumber(formState.waterPercent)
+        : valueForUntrackedMetric('waterPercent'),
+      musclePercent: trackedMetrics.includes('musclePercent')
+        ? toNumber(formState.musclePercent)
+        : valueForUntrackedMetric('musclePercent'),
+      bmi: trackedMetrics.includes('bmi') ? toNumber(formState.bmi) : valueForUntrackedMetric('bmi'),
+      visceralFat: trackedMetrics.includes('visceralFat')
+        ? toNumber(formState.visceralFat)
+        : valueForUntrackedMetric('visceralFat'),
+      biologicalAge: trackedMetrics.includes('biologicalAge')
+        ? toNumber(formState.biologicalAge)
+        : valueForUntrackedMetric('biologicalAge'),
     }
 
-    const validationErrors = validateMeasurementInput(parsedInput)
+    const validationErrors = validateMeasurementInput(parsedInput, { requiredMetrics: trackedMetrics })
     setErrors(validationErrors)
 
     if (hasValidationErrors(validationErrors)) {
@@ -210,29 +229,39 @@ export function EntryPage() {
       const result = await saveEntry(parsedInput)
       await navigate('/', {
         state: {
-          flash: result === 'updated' ? 'Tageswert aktualisiert' : 'Eintrag gespeichert',
+          flash: result === 'updated' ? messages.flashUpdated : messages.flashCreated,
         },
       })
     } catch {
-      setSubmitError('Eintrag konnte nicht gespeichert werden.')
+      setSubmitError(messages.saveFailed)
     } finally {
       setIsSaving(false)
     }
   }
 
+  const visibleFields = useMemo(
+    () =>
+      FIELD_CONFIGS.filter((field) => trackedMetrics.includes(field.key)).map((field, index) => ({
+        ...field,
+        label: `${index + 1}. ${getMetricLabel(field.key, language)}`,
+        unit: getMetricUnit(field.key, language),
+      })),
+    [language, trackedMetrics],
+  )
+
   return (
     <section className="space-y-4">
       <header className="rounded-3xl border border-teal-900/10 bg-white/95 p-5 shadow-sm">
-        <h2 className="text-xl font-bold tracking-tight">{editDate ? 'Eintrag bearbeiten' : 'Schnellerfassung'}</h2>
+        <h2 className="text-xl font-bold tracking-tight">{editDate ? messages.editEntryTitle : messages.saveEntryTitle}</h2>
         <p className="mt-1 text-sm text-slate-600">
-          Reihenfolge ist jetzt wie auf deiner Waage: kg, Körperfett, Wasser, Muskelmasse, BMI, Viszeralfett, biologisches Alter.
+          {messages.entrySequenceHint}
         </p>
         {hint ? <p className="mt-3 rounded-xl bg-teal-50 px-3 py-2 text-sm text-teal-900">{hint}</p> : null}
       </header>
 
       {editDate && !existingEntry && !isLoading ? (
         <div className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-          Kein Eintrag für dieses Datum gefunden.
+          {messages.entryNotFound}
         </div>
       ) : null}
 
@@ -245,7 +274,7 @@ export function EntryPage() {
       <form onSubmit={handleSubmit} className="space-y-4 rounded-3xl border border-teal-900/10 bg-white/95 p-4 shadow-sm">
         <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end">
           <label className="block">
-            <span className="mb-1 block text-sm font-semibold text-slate-700">Datum</span>
+            <span className="mb-1 block text-sm font-semibold text-slate-700">{messages.date}</span>
             <input
               type="date"
               value={formState.date}
@@ -261,7 +290,7 @@ export function EntryPage() {
             onClick={() => handleChange('date', toIsoDateLocal())}
             className="rounded-xl border border-slate-300 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
-            Heute
+            {messages.today}
           </button>
 
           <button
@@ -269,7 +298,7 @@ export function EntryPage() {
             onClick={handleClear}
             className="rounded-xl border border-slate-300 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
-            Leeren
+            {messages.clear}
           </button>
         </div>
 
@@ -279,12 +308,12 @@ export function EntryPage() {
             onClick={handleUseLatestValues}
             className="w-full rounded-xl border border-teal-300 bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-900 hover:bg-teal-100"
           >
-            Vorherige Werte übernehmen
+            {messages.usePreviousValues}
           </button>
         ) : null}
 
         <div className="grid gap-3 sm:grid-cols-2">
-          {FIELD_CONFIGS.map((field) => (
+          {visibleFields.map((field) => (
             <StepNumberField
               key={field.key}
               id={field.key}
@@ -297,6 +326,7 @@ export function EntryPage() {
               onValueChange={(value) => handleChange(field.key, value)}
               onStepChange={(delta) => handleStepChange(field, delta)}
               error={errors[field.key as keyof MeasurementInput]}
+              language={language}
             />
           ))}
         </div>
@@ -306,11 +336,11 @@ export function EntryPage() {
           disabled={isSaving}
           className="w-full rounded-xl bg-teal-700 px-4 py-3 text-base font-semibold text-white transition hover:bg-teal-600 disabled:cursor-not-allowed disabled:bg-teal-300"
         >
-          {isSaving ? 'Speichere...' : editDate ? 'Aktualisieren' : 'Speichern'}
+          {isSaving ? messages.saving : editDate ? messages.update : messages.save}
         </button>
 
         <Link to="/history" className="block text-center text-sm font-semibold text-teal-700 hover:underline">
-          Zum Verlauf
+          {messages.backToHistory}
         </Link>
       </form>
     </section>

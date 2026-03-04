@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react'
 import type { Measurement, MeasurementInput } from '../types/measurement'
+import type { AppSettings } from '../types/settings'
 
 export type SaveResult = 'created' | 'updated'
 export type ImportResult = {
@@ -12,9 +13,13 @@ export type MeasurementsContextValue = {
   entries: Measurement[]
   error: string | null
   isLoading: boolean
+  isSettingsReady: boolean
+  settings: AppSettings
   refresh: () => Promise<void>
   saveEntry: (entry: MeasurementInput) => Promise<SaveResult>
   importEntries: (entries: MeasurementInput[]) => Promise<ImportResult>
+  updateSettings: (nextSettings: Partial<AppSettings>) => void
+  completeOnboarding: (nextSettings: Omit<AppSettings, 'onboardingCompleted'>) => void
   deleteEntry: (date: string) => Promise<void>
   clearAllEntries: () => Promise<void>
   exportCsv: () => Promise<string>

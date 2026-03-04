@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseMeasurementsCsv, parseMeasurementsJson } from './import'
+import { parseMeasurementsCsv, parseMeasurementsJson, parseMeasurementsJsonImport } from './import'
 
 describe('parseMeasurementsCsv', () => {
   it('parses csv and keeps latest duplicate date', () => {
@@ -87,5 +87,34 @@ describe('parseMeasurementsJson', () => {
     ])
 
     expect(() => parseMeasurementsJson(json)).toThrow('Zeile 1: Feld "weightKg" ist keine gültige Zahl.')
+  })
+
+  it('parses wrapped json payload with settings', () => {
+    const json = JSON.stringify({
+      settings: {
+        language: 'en',
+        theme: 'mono',
+        trackedMetrics: ['weightKg', 'bmi'],
+      },
+      entries: [
+        {
+          date: '2026-03-01',
+          weightKg: 80,
+          bodyFatPercent: 21,
+          waterPercent: 56,
+          musclePercent: 40,
+          bmi: 24.1,
+          visceralFat: 8,
+          biologicalAge: 35,
+        },
+      ],
+    })
+
+    const parsed = parseMeasurementsJsonImport(json)
+
+    expect(parsed.entries).toHaveLength(1)
+    expect(parsed.settings?.language).toBe('en')
+    expect(parsed.settings?.theme).toBe('mono')
+    expect(parsed.settings?.trackedMetrics).toEqual(['weightKg', 'bmi'])
   })
 })

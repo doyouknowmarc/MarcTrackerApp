@@ -3,6 +3,7 @@ type StepNumberFieldProps = {
   label: string
   unit: string
   value: string
+  language?: 'de' | 'en'
   step: number
   error?: string
   min?: number
@@ -16,6 +17,7 @@ export function StepNumberField({
   label,
   unit,
   value,
+  language = 'de',
   step,
   error,
   min,
@@ -23,6 +25,12 @@ export function StepNumberField({
   onValueChange,
   onStepChange,
 }: StepNumberFieldProps) {
+  const decreaseLabel = language === 'en' ? `${label} decrease` : `${label} verringern`
+  const increaseLabel = language === 'en' ? `${label} increase` : `${label} erhöhen`
+  const stepLabel = language === 'en' ? 'Step size' : 'Schrittweite'
+  const minLabel = language === 'en' ? 'min' : 'min'
+  const maxLabel = language === 'en' ? 'max' : 'max'
+
   return (
     <div className="rounded-2xl border border-teal-900/10 bg-white/90 p-3 shadow-sm">
       <div className="mb-2 flex items-center justify-between">
@@ -37,14 +45,14 @@ export function StepNumberField({
           type="button"
           onClick={() => onStepChange(-step)}
           className="w-11 shrink-0 rounded-xl border border-slate-300 bg-slate-50 text-xl font-bold text-slate-700 transition hover:bg-slate-100"
-          aria-label={`${label} verringern`}
+          aria-label={decreaseLabel}
         >
           -
         </button>
 
         <input
           id={id}
-          type="text"
+          type="number"
           inputMode="decimal"
           enterKeyHint="next"
           pattern="[0-9]*[.,]?[0-9]*"
@@ -61,16 +69,16 @@ export function StepNumberField({
           type="button"
           onClick={() => onStepChange(step)}
           className="w-11 shrink-0 rounded-xl border border-teal-700 bg-teal-700 text-xl font-bold text-white transition hover:bg-teal-600"
-          aria-label={`${label} erhöhen`}
+          aria-label={increaseLabel}
         >
           +
         </button>
       </div>
 
       <p className="mt-2 text-xs text-slate-500">
-        Schrittweite {step} {unit}
-        {typeof min === 'number' ? `, min ${min}` : ''}
-        {typeof max === 'number' ? `, max ${max}` : ''}
+        {stepLabel} {step} {unit}
+        {typeof min === 'number' ? `, ${minLabel} ${min}` : ''}
+        {typeof max === 'number' ? `, ${maxLabel} ${max}` : ''}
       </p>
 
       {error ? (

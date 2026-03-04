@@ -1,4 +1,6 @@
 import type { MeasurementInput } from '../types/measurement'
+import { METRIC_ORDER, type MetricKey } from '../types/measurement'
+import type { AppSettings } from '../types/settings'
 import { hasValidationErrors, validateMeasurementInput } from './validation'
 
 const REQUIRED_COLUMNS: Array<keyof MeasurementInput> = [
@@ -13,6 +15,10 @@ const REQUIRED_COLUMNS: Array<keyof MeasurementInput> = [
 ]
 
 type ImportRecord = Partial<Record<keyof MeasurementInput, unknown>>
+export type ParsedJsonImport = {
+  entries: MeasurementInput[]
+  settings?: Partial<AppSettings>
+}
 
 function parseNumber(value: unknown, field: string, rowNumber: number): number {
   if (typeof value === 'number') {
@@ -194,16 +200,38 @@ export function parseMeasurementsCsv(rawContent: string): MeasurementInput[] {
 
 export function parseMeasurementsJson(rawContent: string): MeasurementInput[] {
   const parsed = JSON.parse(rawContent) as unknown
+  return parseJsonPayload(parsed).entries
+}
 
-  if (!Array.isArray(parsed)) {
-    throw new Error('JSON muss ein Array von Datensätzen enthalten.')
+function parseJsonPayload(parsed: unknown): ParsedJsonImport {
+  if (Array.isArray(parsed)) {
+    return {
+      entries: parseJsonEntries(parsed),
+    }
   }
 
-  if (parsed.length === 0) {
+  if (typeof parsed !== 'object' || parsed === null) {
+    throw new Error('JSON muss ein Array oder ein Objekt mit "entries" enthalten.')
+  }
+
+  const maybeObject = parsed as { entries?: unknown; settings?: unknown }
+
+  if (!Array.isArray(maybeObject.entries)) {
+    throw new Error('JSON muss ein Array oder ein Objekt mit "entries" enthalten.')
+  }
+
+  return {
+    entries: parseJsonEntries(maybeObject.entries),
+    settings: parseImportedSettings(maybeObject.settings),
+  }
+}
+
+function parseJsonEntries(rows: unknown[]): MeasurementInput[] {
+  if (rows.length === 0) {
     throw new Error('JSON enthält keine Datensätze.')
   }
 
-  const importedEntries = parsed.map((row, index) => {
+  const importedEntries = rows.map((row, index) => {
     if (typeof row !== 'object' || row === null) {
       throw new Error(`Zeile ${index + 1}: Ungültiges Objekt.`)
     }
@@ -213,4 +241,42 @@ export function parseMeasurementsJson(rawContent: string): MeasurementInput[] {
   })
 
   return normalizeEntries(importedEntries)
+}
+
+function parseImportedSettings(rawSettings: unknown): Partial<AppSettings> | undefined {
+  if (!rawSettings || typeof rawSettings !== 'object') {
+    return undefined
+  }
+
+  const settings = rawSettings as Partial<AppSettings>
+  const parsedSettings: Partial<AppSettings> = {}
+
+  if (settings.language === 'de' || settings.language === 'en') {
+    parsedSettings.language = settings.language
+  }
+
+  if (settings.theme === 'green' || settings.theme === 'mono' || settings.theme === 'creative') {
+    parsedSettings.theme = settings.theme
+  }
+
+  if (Array.isArray(settings.trackedMetrics)) {
+    const allowedMetrics = new Set<MetricKey>(METRIC_ORDER)
+    const trackedMetrics = settings.trackedMetrics.filter(
+      (metric): metric is MetricKey => typeof metric === 'string' && allowedMetrics.has(metric as MetricKey),
+    )
+    if (trackedMetrics.length > 0) {
+      parsedSettings.trackedMetrics = METRIC_ORDER.filter((metric) => trackedMetrics.includes(metric))
+    }
+  }
+
+  if (Object.keys(parsedSettings).length === 0) {
+    return undefined
+  }
+
+  return parsedSettings
+}
+
+export function parseMeasurementsJsonImport(rawContent: string): ParsedJsonImport {
+  const parsed = JSON.parse(rawContent) as unknown
+  return parseJsonPayload(parsed)
 }

@@ -14,13 +14,18 @@ TrackerApp ist eine mobile-first Progressive Web App zum Tracken von:
 Die Daten werden lokal im Browser (`IndexedDB`) gespeichert. Kein Login, kein Backend.
 
 ## Features
+- Einmaliges Onboarding beim ersten Start:
+  - Sprache (`Deutsch`/`English`)
+  - Theme (`Grün`, `Minimal Schwarz/Weiß`, `Kreativ`)
+  - Auswahl, welche Metriken in der App angezeigt/erfasst werden
 - Tägliche Erfassung mit genau einem Eintrag pro Datum (Upsert)
 - Schnelle Eingabe mit mobilem Number-Pad und +/- Steppern
 - Vorbefüllung neuer Einträge mit den letzten Messwerten
-- Dashboard mit Gewichtstrend und KPI-Änderungen (7/30 Tage)
+- Dashboard mit umschaltbarem Metrik-Chart und KPI-Änderungen (7/30 Tage)
 - Verlauf mit Bearbeiten/Löschen
 - CSV/JSON Export
 - CSV/JSON Import (inkl. Legacy-Import ohne `bmi`)
+- JSON-Export enthält zusätzlich die App-Settings (Sprache/Theme/aktive Metriken)
 - Offline-fähig als PWA
 
 ## Demo-Datensatz
@@ -29,6 +34,35 @@ Für Tests liegen importierbare Beispieldateien unter:
 - `demo/trackerapp-demo.json`
 
 Import in der App unter `Datenverwaltung -> Import`.
+
+## JSON Export/Import Format
+- Unterstützt weiterhin ein reines JSON-Array von Datensätzen (legacy).
+- Neues Format:
+
+```json
+{
+  "version": 2,
+  "exportedAt": "2026-03-04T12:00:00.000Z",
+  "settings": {
+    "language": "de",
+    "theme": "green",
+    "trackedMetrics": ["weightKg", "bodyFatPercent"],
+    "onboardingCompleted": true
+  },
+  "entries": [
+    {
+      "date": "2026-03-01",
+      "weightKg": 80,
+      "bodyFatPercent": 21,
+      "waterPercent": 56,
+      "musclePercent": 40,
+      "bmi": 24.1,
+      "visceralFat": 8,
+      "biologicalAge": 35
+    }
+  ]
+}
+```
 
 ## Development
 ```bash

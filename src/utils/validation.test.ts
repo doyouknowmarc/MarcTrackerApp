@@ -38,4 +38,20 @@ describe('validateMeasurementInput', () => {
     const errors = validateMeasurementInput(validInput({ waterPercent: Number.NaN }))
     expect(errors.waterPercent).toBeDefined()
   })
+
+  it('validates only selected metrics when requiredMetrics is provided', () => {
+    const errors = validateMeasurementInput(
+      validInput({
+        bodyFatPercent: Number.NaN,
+        waterPercent: Number.NaN,
+        musclePercent: Number.NaN,
+        bmi: Number.NaN,
+        visceralFat: Number.NaN,
+        biologicalAge: Number.NaN,
+      }),
+      { requiredMetrics: ['weightKg'] },
+    )
+
+    expect(errors).toEqual({})
+  })
 })
